@@ -161,5 +161,7 @@ cython_debug/
 
 # VS Code
 .vscode/
+.pylintrc
 
+# media
 users_image/
