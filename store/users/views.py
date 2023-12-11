@@ -43,6 +43,7 @@ def profile(request):
             return HttpResponseRedirect(reverse('users:profile'))
         print(form.errors)
     form = UserProfileForm(instance=request.user)
+
     context = {
         'title': 'Store - Профиль',
         'form': form,
