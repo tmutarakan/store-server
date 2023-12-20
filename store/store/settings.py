@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 
-from django.conf.global_settings import EMAIL_BACKEND
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -28,6 +26,9 @@ SECRET_KEY = 'django-insecure-=j7jm(o=$h+$-u$^@yys&+r^dl+98&y9rj%s0(i&xtom9%4)1u
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+
+DOMAIN_NAME = 'http://localhost:8000'
 
 
 # Application definition
