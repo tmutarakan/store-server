@@ -10,10 +10,20 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Start Django-environ
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+# reading .env file
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -143,4 +153,8 @@ LOGOUT_REDIRECT_URL = '/'
 
 # Sending emails
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env('EMAIL_PORT')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_USE_SSL = env('EMAIL_USE_SSL')
