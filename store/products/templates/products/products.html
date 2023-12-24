@@ -1,5 +1,5 @@
 {% extends 'products/base.html' %}
-{% load static %}
+{% load static cache %}
 
 
 {% block css %}
@@ -24,6 +24,7 @@
 
             <div class="col-lg-9">
 
+            {% cache 30 sidebar %}
                 <div id="carouselExampleIndicators" class="carousel slide my-4" data-ride="carousel">
                     <ol class="carousel-indicators">
                         <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
@@ -50,6 +51,7 @@
                         <span class="sr-only">Next</span>
                     </a>
                 </div>
+            {% endcache %}
 
                 <div class="row">
 
