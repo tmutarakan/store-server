@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from products.views import IndexView
+from orders.views import yookassa_webhook_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,6 +29,7 @@ urlpatterns = [
     path('users/', include('users.urls', namespace='users')),
     path('accounts/', include('allauth.urls')),
     path('orders/', include('orders.urls', namespace='orders')),
+    path('webhook/yookassa/', yookassa_webhook_view, name='yookassa_webhook'),
 ]
 
 

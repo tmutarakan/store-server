@@ -1,3 +1,4 @@
+import json
 from typing import Any
 from uuid import uuid4
 from http import HTTPStatus
@@ -10,6 +11,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
 from django.urls import reverse, reverse_lazy
+from django.views.decorators.csrf import csrf_exempt
 
 from common.views import TitleMixin
 from orders.forms import OrderForm
@@ -46,10 +48,20 @@ class OrderCreateView(TitleMixin, CreateView):
                 "return_url": f"{settings.DOMAIN_NAME}{reverse('orders:order_success')}"
             },
             "capture": True,
-            "description": "Заказ №1"
+            "description": "Заказ №1",
+            "metadata": {'order_id': self.object.id}
         }, uuid4())
         return HttpResponseRedirect(payment.confirmation.confirmation_url, status=HTTPStatus.SEE_OTHER)
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
         form.instance.initiator = self.request.user
         return super().form_valid(form)
+
+
+@csrf_exempt
+def yookassa_webhook_view(request):
+    payload = request.body.decode('utf-8')
+    payload_dict = json.loads(payload)
+    metadata = payload_dict['object']['metadata']
+    print(metadata)
+    return HttpResponse(status=HTTPStatus.OK)
