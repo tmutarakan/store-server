@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from common.views import TitleMixin
 from orders.forms import OrderForm
 from products.models import Basket
+from orders.models import Order
 
 
 Configuration.account_id = settings.YOOKASSA_ACCOUNT_ID
@@ -50,7 +51,7 @@ class OrderCreateView(TitleMixin, CreateView):
                 "return_url": f"{settings.DOMAIN_NAME}{reverse('orders:order_success')}"
             },
             "capture": True,
-            "description": "Заказ №1",
+            "description": f"Заказ №{self.object.id}",
             "metadata": {'order_id': self.object.id}
         }, uuid4())
         return HttpResponseRedirect(payment.confirmation.confirmation_url, status=HTTPStatus.SEE_OTHER)
@@ -65,5 +66,8 @@ def yookassa_webhook_view(request):
     payload = request.body.decode('utf-8')
     payload_dict = json.loads(payload)
     metadata = payload_dict['object']['metadata']
-    print(metadata)
+    print(f"Metadata: {metadata}")
+    order_id = metadata['order_id']
+    order = Order.objects.get(id=order_id)
+    order.update_after_payment()
     return HttpResponse(status=HTTPStatus.OK)
