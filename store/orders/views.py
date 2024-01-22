@@ -15,6 +15,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from common.views import TitleMixin
 from orders.forms import OrderForm
+from products.models import Basket
 
 
 Configuration.account_id = settings.YOOKASSA_ACCOUNT_ID
@@ -38,9 +39,10 @@ class OrderCreateView(TitleMixin, CreateView):
 
     def post(self, request: HttpRequest, *args: str, **kwargs: Any) -> HttpResponse:
         super().post(request, *args, **kwargs)
+        baskets = Basket.objects.filter(user=self.request.user)
         payment = Payment.create({
             "amount": {
-                "value": "100.00",
+                "value": baskets.total_sum(),
                 "currency": "RUB"
             },
             "confirmation": {
