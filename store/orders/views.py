@@ -6,17 +6,19 @@ from http import HTTPStatus
 from yookassa import Configuration, Payment
 
 from django.conf import settings
+from django.db.models.query import QuerySet
 from django.forms.models import BaseModelForm
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
+from django.views.generic.list import ListView
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 
 from common.views import TitleMixin
 from orders.forms import OrderForm
-from products.models import Basket
 from orders.models import Order
+from products.models import Basket
 
 
 Configuration.account_id = settings.YOOKASSA_ACCOUNT_ID
@@ -30,6 +32,17 @@ class SuccesTemplateView(TitleMixin, TemplateView):
 
 class CanceledTemplateView(TitleMixin, TemplateView):
     template_name = 'orders/canceled.html'
+
+
+class OrderListView(TitleMixin, ListView):
+    template_name = 'orders/orders.html'
+    title = 'Store - Заказы'
+    queryset = Order.objects.all()
+    ordering = ('-created')
+
+    def get_queryset(self) -> QuerySet[Any]:
+        queryset =  super().get_queryset()
+        return queryset.filter(initiator=self.request.user)
 
 
 class OrderCreateView(TitleMixin, CreateView):
