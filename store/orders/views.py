@@ -12,6 +12,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import CreateView
 from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 
@@ -38,11 +39,21 @@ class OrderListView(TitleMixin, ListView):
     template_name = 'orders/orders.html'
     title = 'Store - Заказы'
     queryset = Order.objects.all()
-    ordering = ('-created')
+    ordering = ('-created',)
 
     def get_queryset(self) -> QuerySet[Any]:
         queryset =  super().get_queryset()
         return queryset.filter(initiator=self.request.user)
+
+
+class OrderDetailView(TitleMixin, DetailView):
+    template_name = 'orders/order.html'
+    model = Order
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Store - Заказ №{self.object.id}"
+        return context
 
 
 class OrderCreateView(TitleMixin, CreateView):
