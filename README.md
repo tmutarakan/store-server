@@ -170,3 +170,67 @@ Output
      Active: inactive (dead)
 TriggeredBy: ● gunicorn.socket
 ```
+
+#### Настройте Nginx для передачи прокси-сервера Gunicorn
+
+Теперь, когда Gunicorn настроен, вам нужно настроить Nginx для передачи трафика процессу.
+
+Начните с создания и открытия нового серверного блока в каталоге доступных сайтов Nginx:
+```sh
+sudo nano /etc/nginx/sites-available/myproject
+```
+Внутри откройте новый серверный блок. Вы начнете с указания, что этот блок должен прослушивать обычный порт 80 и что он должен отвечать на доменное имя или IP-адрес вашего сервера:
+```sh
+server {
+    listen 80;
+    server_name server_domain_or_IP;
+}
+```
+Далее вы скажете Nginx игнорировать любые проблемы с поиском значка. Вы также скажете ему, где найти статические ресурсы, которые вы собрали в своем каталоге ~/myprojectdir/static. Все эти файлы имеют стандартный префикс URI “/static”, поэтому вы можете создать блок расположения в соответствии с этими запросами:
+```sh
+server {
+    listen 80;
+    server_name server_domain_or_IP;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        root /home/sammy/myprojectdir;
+    }
+}
+```
+Наконец, создайте блок location / {}, соответствующий всем остальным запросам. Внутри этого местоположения вы включите стандартный файл proxy_params, входящий в комплект установки Nginx, а затем передадите трафик непосредственно в сокет Gunicorn:
+```sh
+server {
+    listen 80;
+    server_name server_domain_or_IP;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        root /home/sammy/myprojectdir;
+    }
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/gunicorn.sock;
+    }
+}
+```
+Сохраните и закройте файл, когда закончите. Теперь вы можете включить файл, связав его с каталогом сайтов с поддержкой:
+```sh
+sudo ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
+```
+Проверьте конфигурацию Nginx на наличие синтаксических ошибок, набрав:
+```sh
+sudo nginx -t
+```
+Если сообщений об ошибках не поступало, продолжайте и перезапустите Nginx, набрав:
+```sh
+sudo systemctl restart nginx
+```
+
+
+
+
+https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-debian-11
+
+https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-22-04
