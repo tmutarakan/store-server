@@ -2,7 +2,7 @@
 
 ## Настройка сервера(Ubuntu 22.04)
 
-### Вход под root-ом:
+#### Вход под root-ом:
 ```sh
 ssh root@your_server_ip
 ```
@@ -14,7 +14,7 @@ usermod -aG sudo new_sudo_user # Выдача привилегий админи�
 usermod -a -G new_sudo_user www-data # 
 ```
 
-### Настройка и установка СУБД PostgreSQL:
+#### Настройка и установка СУБД PostgreSQL:
 ```sh
 ssh new_sudo_user@your_server_ip
 ```
@@ -61,6 +61,7 @@ cd store
 ```sh
 pip install gunicorn
 ```
+### Nginx и Gunicorn
 #### Создание файлов systemd  Socket и Service для Gunicorn
 
 Сокет Gunicorn будет создан при загрузке и будет прослушивать соединения. Когда соединение произойдет, система автоматически запустит процесс Gunicorn для обработки соединения.
@@ -227,7 +228,7 @@ sudo nginx -t
 ```sh
 sudo systemctl restart nginx
 ```
-#### Настройка redis
+### Настройка redis
 Необходимо внести одно важное изменение в конфигурационный файл Redis, который был сгенерирован автоматически во время установки.
 
 Откройте этот файл в предпочитаемом вами текстовом редакторе:
@@ -258,9 +259,54 @@ supervised systemd
 ```sh
 sudo systemctl restart redis.service
 ```
+###  Настройка Celery
+/etc/systemd/system/celery.service:
+```sh
+[Unit]
+Description=Celery Service
+After=network.target
 
+[Service]
+User=user
+Group=www-data
+WorkingDirectory=/home/user/store-server/store
+ExecStart=/home/user/store-server/venv/bin/celery -A store worker -l INFO
 
+[Install]
+WantedBy=multi-user.target
+```
+После того, как вы поместили этот файл в /etc/systemd/system, вам следует запустить systemctl daemon-reload, чтобы Systemd подтвердил этот файл. Вам также следует запускать эту команду каждый раз, когда вы его изменяете. Используйте systemctl enable celery.service, если вы хотите, чтобы служба celery автоматически запускалась при (повторной) загрузке системы.
 
-https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-debian-11
+###  Установка и настройка firewall UFW
+```sh
+sudo apt install ufw
+```
+Вы можете просмотреть список установленных профилей UFW, набрав:
+```sh
+ufw app list
+```
+Вам нужно будет убедиться, что брандмауэр разрешает SSH-подключения, чтобы вы могли войти на свой сервер в следующий раз. Разрешите эти подключения, набрав:
+```sh
+ufw allow OpenSSH
+```
+Для nginx:
+```sh
+ufw allow 'Nginx Full'
+```
+Теперь включите брандмауэр, набрав:
+```sh
+ufw enable
+```
+Введите y и нажмите ENTER, чтобы продолжить. Вы можете увидеть, что SSH-соединения по-прежнему разрешены, набрав:
+```sh
+ufw status
+```
+## Полезные ссылки
 
-https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-22-04
+[Как настроить Django с помощью Postgres, Nginx и Gunicorn в Debian 11](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-debian-11)
+
+[Как установить и обезопасить Redis в Ubuntu 22.04](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-22-04)
+
+[Настройка Celery](https://docs.celeryq.dev/en/stable/userguide/daemonizing.html#usage-systemd)
+
+[Первоначальная настройка сервера Ubuntu 22.04](https://www.digitalocean.com/community/tutorials/initial-server-setup-with-ubuntu-22-04)
