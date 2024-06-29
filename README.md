@@ -1,6 +1,7 @@
 # store-server
 
 ### [Настройка сервера](docs/ServerSetup.md)
+### [Аутентификацию SSH по ключу](docs/KeySSH.md)
 ### [Установка и настройка СУБД PostgreSQL](docs/ConfiguringPostgreSQL.md)
 ### [Развёртывание проекта](docs/ProjectDeployment.md)
 ### [Nginx и Gunicorn](docs/Nginx&Gunicorn.md)
