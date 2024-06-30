@@ -1,5 +1,74 @@
 # store-server
 
+## Локальный запуск 
+### При помощи docker
+#### Файл docker-compose.yml для запуска необходимых сервисов
+```yaml
+version: "3.9"
+services:
+  postgres:
+    image: postgres:14.9-alpine
+    container_name: store-server-db
+    environment:
+      POSTGRES_DB: "store_db"
+      POSTGRES_USER: "store_username"
+      POSTGRES_PASSWORD: "store_password"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - db:/var/lib/postgresql/data
+    #  - $PWD/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  adminer:
+    image: adminer
+    container_name: "store-server-webface"
+    ports:
+      - 8082:8080
+
+  redis:
+    image: redis:7.0.4-alpine
+    container_name: "store_redis"
+    ports:
+      - "6379:6379"
+    volumes:
+      - cache:/data
+      #- cache/redis.conf:/etc/redis/redis.conf
+    #  - $PWD/pyredis/redis_snapshot:/data
+    #  - $PWD/pyredis/config/redis.conf:/etc/redis/redis.conf
+    
+volumes:
+  db:
+    driver: local
+  cache:
+    driver: local
+
+```
+#### Команда для запуска:
+```sh
+docker-compose up -d
+```
+#### В каталоге проекта создайте виртуальную среду Python, набрав:
+```sh
+cd store-server
+python3 -m venv venv
+```
+#### Перед установкой требований к Python для вашего проекта вам необходимо активировать виртуальную среду. Вы можете сделать это, набрав:
+```sh
+source venv/bin/activate
+pip install -r requirements.txt
+```
+#### Перенос статики для сервера:
+```sh
+cd store
+./manage.py collectstatic
+```
+#### Запуск локального сервера
+```sh
+./manage.py runserver
+```
+## Запуск на сервере
+
 ### [Настройка сервера](docs/ServerSetup.md)
 ### [Аутентификацию SSH по ключу](docs/KeySSH.md)
 ### [Установка и настройка СУБД PostgreSQL](docs/ConfiguringPostgreSQL.md)
