@@ -21,7 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     DEBUG=(bool),
     SECRET_KEY=(str),
-    DOMAIN_NAME=(str),
+    WEBAPP_URL=(str),
+    WEBAPP_PORT=(str),
     REDIS_HOST=(str),
     REDIS_EXTERNAL_PORT=(str),
     EMAIL_HOST=(str),
@@ -36,6 +37,8 @@ env = environ.Env(
     POSTGRES_EXTERNAL_PORT=(str),
     YOOKASSA_ACCOUNT_ID=(str),
     YOOKASSA_SECRET_KEY=(str),
+    GITHUN_CLIENT_ID=(str),
+    GITHUN_SECRET=(str),
 )
 # reading .env file
 environ.Env.read_env(BASE_DIR / ".env")
@@ -53,8 +56,9 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = ["*"]
 
 
-DOMAIN_NAME = env("DOMAIN_NAME")
-
+WEBAPP_URL = env("WEBAPP_URL")
+WEBAPP_PORT = env("WEBAPP_PORT")
+DOMAIN_NAME = f"{WEBAPP_URL}:{WEBAPP_PORT}"
 
 # Application definition
 
@@ -232,8 +236,8 @@ AUTHENTICATION_BACKENDS = [
 SOCIALACCOUNT_PROVIDERS = {
     "github": {
         'APP': {
-            'client_id': 'Ov23liTcQJFXYr949fcL',
-            'secret': 'dcb0aa26441a75ef9a4bc359f3b2066f55518b5f',
+            'client_id': env("GITHUN_CLIENT_ID"),
+            'secret': env("GITHUN_SECRET"),
             'key': ''
         }
     }

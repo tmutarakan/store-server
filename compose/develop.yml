@@ -8,11 +8,25 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATA: "/var/lib/postgresql/data/pgdata"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DBNAME}"]
+      interval: 2s
+      timeout: 15s
+      retries: 5
+      start_period: 3s
     volumes:
       - db:/var/lib/postgresql/data
-    #  - $PWD/data:/var/lib/postgresql/data
+      - db:/etc/postgresql/postgresql.conf
     ports:
       - ${POSTGRES_EXTERNAL_PORT}:${POSTGRES_INTERNAL_PORT}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     networks:
       - store-server
 
@@ -22,6 +36,14 @@ services:
     restart: unless-stopped
     ports:
       - ${ADMINER_EXTERNAL_PORT}:${ADMINER_INTERNAL_PORT}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     networks:
       - store-server
 
@@ -33,9 +55,15 @@ services:
       - ${REDIS_EXTERNAL_PORT}:${REDIS_INTERNAL_PORT}
     volumes:
       - cache:/data
-      #- cache/redis.conf:/etc/redis/redis.conf
-    #  - $PWD/pyredis/redis_snapshot:/data
-    #  - $PWD/pyredis/config/redis.conf:/etc/redis/redis.conf
+      - cache:/etc/redis/redis.conf
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     networks:
       - store-server
 

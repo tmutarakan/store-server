@@ -1,0 +1,107 @@
+x-deploy:
+  &default-deploy
+  resources:
+    limits:
+      cpus: '0.50'
+      memory: 512M
+    reservations:
+      cpus: '0.25'
+      memory: 256M
+
+services:
+  postgres:
+    image: postgres:17.5-alpine
+    container_name: store-server-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DBNAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DBNAME}"]
+      interval: 2s
+      timeout: 15s
+      retries: 5
+      start_period: 3s
+    volumes:
+      - db:/var/lib/postgresql/data
+      - db:/etc/postgresql/postgresql.conf
+    expose:
+      - ${POSTGRES_INTERNAL_PORT}
+    deploy: *default-deploy
+    networks:
+      - store-server
+
+  adminer:
+    image: adminer
+    container_name: "store-server-webface"
+    restart: unless-stopped
+    expose:
+      - ${ADMINER_INTERNAL_PORT}
+    deploy: *default-deploy
+    networks:
+      - store-server
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: "store-server-redis"
+    restart: unless-stopped
+    expose:
+      - ${REDIS_INTERNAL_PORT}
+    volumes:
+      - cache:/data
+      - cache:/etc/redis/redis.conf
+    deploy: *default-deploy
+    networks:
+      - store-server
+
+  webapp:
+    image: store-server/webapp
+    build: .
+    container_name: "store-server-webapp"
+    restart: unless-stopped
+    expose:
+      - ${REDIS_INTERNAL_PORT}
+    volumes:
+      - cache:/data
+      - cache:/etc/redis/redis.conf
+    deploy: *default-deploy
+    networks:
+      - store-server
+    depends_on:
+      - postgres
+      - redis
+      - adminer
+
+  gateway:
+    image: nginx:1.19-alpine
+    container_name: "store-gateway"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - gateway:/etc/nginx/conf.d/default.conf
+    deploy: *default-deploy
+    networks:
+      - store-server
+    depends_on:
+      - postgres
+      - redis
+      - adminer
+      - webapp
+
+volumes:
+  db:
+    driver: local
+  cache:
+    driver: local
+  gateway:
+    driver: local
+
+networks:
+  store-server:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.32.0.0/16

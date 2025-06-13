@@ -6,12 +6,7 @@
 Требуются порты 5432 6379 8082
 #### Команда для запуска:
 ```sh
-docker-compose up -d
-```
-#### В каталоге проекта создайте виртуальную среду Python, набрав:
-```sh
-cd store-server
-python3 -m venv venv
+docker-compose -f compose/develop.yml --env-file store/.env up -d
 ```
 #### uv - пакетный менеджер и менеджер виртуальных окружений
 ```sh
