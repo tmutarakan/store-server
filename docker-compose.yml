@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:17.4-alpine
+    container_name: store-server-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DBNAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - db:/var/lib/postgresql/data
+    #  - $PWD/data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_EXTERNAL_PORT}:${POSTGRES_INTERNAL_PORT}
+    networks:
+      - store-server
+
+  adminer:
+    image: adminer
+    container_name: "store-server-webface"
+    restart: unless-stopped
+    ports:
+      - ${ADMINER_EXTERNAL_PORT}:${ADMINER_INTERNAL_PORT}
+    networks:
+      - store-server
+
+  redis:
+    image: redis:7.4.2-alpine
+    container_name: "store_redis"
+    restart: unless-stopped
+    ports:
+      - ${REDIS_EXTERNAL_PORT}:${REDIS_INTERNAL_PORT}
+    volumes:
+      - cache:/data
+      #- cache/redis.conf:/etc/redis/redis.conf
+    #  - $PWD/pyredis/redis_snapshot:/data
+    #  - $PWD/pyredis/config/redis.conf:/etc/redis/redis.conf
+    networks:
+      - store-server
+
+volumes:
+  db:
+    driver: local
+  cache:
+    driver: local
+
+networks:
+  store-server:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.32.0.0/16
