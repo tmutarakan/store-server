@@ -11,4 +11,5 @@ CREATE ROLE my_username with password 'my_password';
 ALTER ROLE "my_username" WITH LOGIN; 
 GRANT ALL PRIVILEGES ON DATABASE "my_db" to "my_username";
 ALTER USER my_username CREATEDB;
+GRANT ALL ON SCHEMA public TO my_username;
 ```

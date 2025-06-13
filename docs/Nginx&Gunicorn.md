@@ -42,14 +42,14 @@ Requires=gunicorn.socket
 After=network.target
 
 [Service]
-User=sammy
+User=www-data
 Group=www-data
-WorkingDirectory=/home/sammy/myprojectdir
-ExecStart=/home/sammy/myprojectdir/myprojectenv/bin/gunicorn \
+WorkingDirectory=/var/www/html/store-server/store
+ExecStart=/var/www/html/store-server/.venv/bin/gunicorn \
           --access-logfile - \
           --workers 3 \
           --bind unix:/run/gunicorn.sock \
-          myproject.wsgi:application
+          store.wsgi:application
 ```
 Наконец, вы добавите раздел [Install]. Это сообщит системам, с чем связать эту службу, если вы разрешите ее запуск при загрузке. Вы хотите, чтобы эта служба запускалась, когда обычная многопользовательская система запущена:
 ```sh
@@ -59,14 +59,14 @@ Requires=gunicorn.socket
 After=network.target
 
 [Service]
-User=`user`
+User=www-data
 Group=www-data
-WorkingDirectory=/home/sammy/myprojectdir
-ExecStart=/home/sammy/myprojectdir/myprojectenv/bin/gunicorn \
+WorkingDirectory=/var/www/html/store-server/store
+ExecStart=/var/www/html/store-server/.venv/bin/gunicorn \
           --access-logfile - \
           --workers 3 \
           --bind unix:/run/gunicorn.sock \
-          myproject.wsgi:application
+          store.wsgi:application
 
 [Install]
 WantedBy=multi-user.target
@@ -75,14 +75,13 @@ WantedBy=multi-user.target
 
 Теперь вы можете запустить и включить сокет Gunicorn. Это создаст файл сокета в /run/gunicorn.sock сейчас и при загрузке. Когда будет установлено подключение к этому сокету, система автоматически запустит gunicorn.service для его обработки:
 ```sh
-sudo systemctl start gunicorn.socket
-sudo systemctl enable gunicorn.socket
+sudo systemctl enable gunicorn.socket --now
 ```
 #### Проверка наличия файла сокета Gunicorn
 
 Проверьте статус процесса, чтобы узнать, удалось ли ему запуститься:
 ```sh
-sudo systemctl status gunicorn.socket
+systemctl status gunicorn.socket
 ```
 Вы должны получить результат, подобный этому:
 ```sh
@@ -100,7 +99,7 @@ Apr 18 17:53:25 django systemd[1]: Listening on gunicorn socket.
 
 В настоящее время, если вы только запустили модуль gunicorn.socket, служба gunicorn.service еще не будет активна, поскольку сокет еще не получил никаких подключений. Вы можете проверить это, введя:
 ```sh
-sudo systemctl status gunicorn
+systemctl status gunicorn
 ```
 ```sh
 Output
@@ -116,7 +115,7 @@ TriggeredBy: ● gunicorn.socket
 
 Начните с создания и открытия нового серверного блока в каталоге доступных сайтов Nginx:
 ```sh
-sudo nano /etc/nginx/sites-available/myproject
+sudo nano /etc/nginx/sites-available/store-server
 ```
 Внутри откройте новый серверный блок. Вы начнете с указания, что этот блок должен прослушивать обычный порт 80 и что он должен отвечать на доменное имя или IP-адрес вашего сервера:
 ```sh
@@ -133,7 +132,7 @@ server {
 
     location = /favicon.ico { access_log off; log_not_found off; }
     location /static/ {
-        root /home/sammy/myprojectdir;
+        root /var/www/html/store-server/store;
     }
 }
 ```
@@ -145,7 +144,7 @@ server {
 
     location = /favicon.ico { access_log off; log_not_found off; }
     location /static/ {
-        root /home/sammy/myprojectdir;
+        root /var/www/html/store-server/store;
     }
 
     location / {

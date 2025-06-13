@@ -60,7 +60,7 @@ cat ~/.ssh/id_rsa.pub
 ssh-copy-id new_sudo_user@your_server_ip
 ```
 
-#### Откройте файл /etc/ssh/sshd_config и замените строки:
+#### Войдите на мервер и откройте файл /etc/ssh/sshd_config и замените строки:
 ```sh
 PermitRootLogin no  # Запрет на вход по ssh для пользователя root
 PasswordAuthentication no   # Запрет входа по паролю
